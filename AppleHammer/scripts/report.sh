@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# SimHammer report.
+# AppleHammer report.
 #
 # Summarizes a run's action log, crash report (if any), and build log into a
 # concise human-readable report: seed, duration, action count, crash point
@@ -8,7 +8,7 @@
 # snippet pulled from the build log.
 set -euo pipefail
 
-OUTPUT_DIR="${1:-.simhammer}"
+OUTPUT_DIR="${1:-.applehammer}"
 SEED="${2:-}"
 
 if [[ -z "$SEED" ]]; then
@@ -27,7 +27,7 @@ SUMMARY_FILE="$OUTPUT_DIR/summary-$SEED.json"
 BUILD_LOG="$OUTPUT_DIR/xcodebuild-$SEED.log"
 
 echo "=============================================="
-echo " SimHammer report -- seed $SEED"
+echo " AppleHammer report -- seed $SEED"
 echo "=============================================="
 
 if [[ -f "$ACTION_LOG" ]]; then

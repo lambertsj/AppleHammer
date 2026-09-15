@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# SimHammer test runner.
+# AppleHammer test runner.
 #
 # Boots an iOS Simulator, runs the MonkeyTests UI test target for a fixed
 # duration under a reproducible seed, and captures the build log + result
@@ -15,9 +15,9 @@ DURATION=60
 SEED=""
 PROJECT=""
 WORKSPACE=""
-TEST_TARGET="SimHammerTests"
+TEST_TARGET="AppleHammerTests"
 LAUNCH_ARG="--uitesting"
-OUTPUT_DIR="${SIMHAMMER_OUTPUT_DIR:-$SCRIPT_DIR/../.simhammer}"
+OUTPUT_DIR="${APPLEHAMMER_OUTPUT_DIR:-$SCRIPT_DIR/../.applehammer}"
 
 usage() {
   cat <<'EOF'
@@ -34,10 +34,10 @@ Options:
   -p <path>         Path to .xcodeproj (auto-detected if omitted)
   -w <path>         Path to .xcworkspace, takes precedence over -p
                      (auto-detected if omitted)
-  -x <target>       UI test target name (default: SimHammerTests)
+  -x <target>       UI test target name (default: AppleHammerTests)
   -a <launch arg>   Launch argument passed to the app under test
                      (default: --uitesting)
-  -o <dir>          Output directory for logs/results (default: ./.simhammer)
+  -o <dir>          Output directory for logs/results (default: ./.applehammer)
   -h                Show this help
 
 Examples:
@@ -77,14 +77,14 @@ fi
 mkdir -p "$OUTPUT_DIR"
 
 echo "=============================================="
-echo " SimHammer run"
+echo " AppleHammer run"
 echo "  scheme:   $SCHEME"
 echo "  device:   $DEVICE"
 echo "  duration: ${DURATION}s"
 echo "  seed:     $SEED"
 echo "  output:   $OUTPUT_DIR"
 echo "=============================================="
-echo "SIMHAMMER_SEED=$SEED"
+echo "APPLEHAMMER_SEED=$SEED"
 
 # Auto-detect a workspace or project in the current directory if neither
 # was passed explicitly.
@@ -115,7 +115,7 @@ if ! xcrun simctl list devices 2>/dev/null | grep -F "$DEVICE" | grep -q "(Boote
   xcrun simctl bootstatus "$DEVICE" -b || true
 fi
 
-RESULT_BUNDLE="$OUTPUT_DIR/SimHammer-$SEED.xcresult"
+RESULT_BUNDLE="$OUTPUT_DIR/AppleHammer-$SEED.xcresult"
 BUILD_LOG="$OUTPUT_DIR/xcodebuild-$SEED.log"
 rm -rf "$RESULT_BUNDLE"
 
@@ -126,16 +126,16 @@ xcodebuild test \
   -destination "platform=iOS Simulator,name=$DEVICE" \
   -only-testing:"$TEST_TARGET/MonkeyTests" \
   -resultBundlePath "$RESULT_BUNDLE" \
-  TEST_RUNNER_SIMHAMMER_SEED="$SEED" \
-  TEST_RUNNER_SIMHAMMER_DURATION="$DURATION" \
-  TEST_RUNNER_SIMHAMMER_LOG_DIR="$OUTPUT_DIR" \
-  TEST_RUNNER_SIMHAMMER_LAUNCH_ARG="$LAUNCH_ARG" \
+  TEST_RUNNER_APPLEHAMMER_SEED="$SEED" \
+  TEST_RUNNER_APPLEHAMMER_DURATION="$DURATION" \
+  TEST_RUNNER_APPLEHAMMER_LOG_DIR="$OUTPUT_DIR" \
+  TEST_RUNNER_APPLEHAMMER_LAUNCH_ARG="$LAUNCH_ARG" \
   2>&1 | tee "$BUILD_LOG"
 STATUS=${PIPESTATUS[0]}
 set -e
 
 echo "=============================================="
-echo " SimHammer finished (xcodebuild exit $STATUS)"
+echo " AppleHammer finished (xcodebuild exit $STATUS)"
 echo "  seed:          $SEED"
 echo "  build log:     $BUILD_LOG"
 echo "  result bundle: $RESULT_BUNDLE"

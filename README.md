@@ -1,6 +1,6 @@
-# SimHammer
+# AppleHammer
 
-SimHammer is a monkey-testing agent skill for iOS apps. Point it at your app
+AppleHammer is a monkey-testing agent skill for iOS apps. Point it at your app
 running in the Simulator and it taps, swipes, and long-presses random points
 on screen for however long you like, watching for crashes and hangs. When it
 finds one, it hands you back the exact tap sequence that caused it — and a
@@ -18,7 +18,7 @@ you archive a build.
 
 For a solo or small-team indie dev, that's the whole pitch: you don't have
 a QA team clicking through every screen combination before each release.
-SimHammer is a rough stand-in for one, driven by an AI coding agent that can
+AppleHammer is a rough stand-in for one, driven by an AI coding agent that can
 also read the crash it finds and propose the fix.
 
 ## What you get
@@ -36,33 +36,33 @@ also read the crash it finds and propose the fix.
 
 ## Install
 
-Clone this repo, or copy the `SimHammer/` directory into your project (or
+Clone this repo, or copy the `AppleHammer/` directory into your project (or
 wherever your coding agent's skills live):
 
 ```bash
 git clone https://github.com/lambertsj/AppleHammer.git
-cp -r AppleHammer/SimHammer /path/to/your/project/.claude/skills/SimHammer
+cp -r AppleHammer/AppleHammer /path/to/your/project/.claude/skills/AppleHammer
 ```
 
 If you're using a skills.sh-style installer:
 
 ```bash
-npx skills add SimHammer
+npx skills add AppleHammer
 ```
 
 Either way, an agent with the skill available will pick it up automatically
 when you ask it to test, hammer, or monkey-test your app — see
-[`SimHammer/SKILL.md`](SimHammer/SKILL.md) for the full trigger list and the
+[`AppleHammer/SKILL.md`](AppleHammer/SKILL.md) for the full trigger list and the
 steps it follows.
 
 ## Quick start
 
-Once `SimHammer/MonkeyTests.swift` is added to a UI test target in your
+Once `AppleHammer/MonkeyTests.swift` is added to a UI test target in your
 project (see `SKILL.md` Steps 2–3 — most of this is meant to be done by your
 coding agent, but you can run it by hand too):
 
 ```bash
-cd SimHammer
+cd AppleHammer
 scripts/run.sh -s YourAppScheme -d "iPhone 15"
 ```
 
@@ -70,7 +70,7 @@ That boots the simulator, hammers your app for 60 seconds, and prints the
 seed it used. If it finds a crash:
 
 ```bash
-scripts/report.sh .simhammer
+scripts/report.sh .applehammer
 ```
 
 prints a summary: seed, duration, how many actions ran, the crash point,
@@ -87,7 +87,7 @@ No crash report on the re-run means the fix holds.
 
 - Xcode 15+ / Swift 5.9+, targeting iOS 17+ Simulator runtimes.
 - A scheme that builds and runs your app in the Simulator.
-- A UI test target for `MonkeyTests.swift` to live in (SimHammer's skill
+- A UI test target for `MonkeyTests.swift` to live in (AppleHammer's skill
   workflow will create one or walk you through adding it if you don't have
   one yet).
 - No third-party dependencies — `MonkeyTests.swift` uses only `XCTest`,
@@ -95,7 +95,7 @@ No crash report on the re-run means the fix holds.
 
 ## Recommended: the `--uitesting` launch hook
 
-SimHammer works better if your app can tell it's being hammered and skip
+AppleHammer works better if your app can tell it's being hammered and skip
 anything a monkey can't get through on its own (login, paywalls,
 onboarding). Add this near app launch:
 

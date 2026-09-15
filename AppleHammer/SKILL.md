@@ -1,11 +1,11 @@
 ---
-name: simhammer
+name: applehammer
 description: Randomly "monkey test" an iOS app in the Simulator to shake out crashes and hangs before they ship. Use this skill before an App Store submission, after landing a major UI change, when the user asks to "test", "hammer", "monkey test", "fuzz", or "stress test" their iOS app, or when they mention wanting to find crashes or unresponsive screens in a SwiftUI/UIKit app that runs in Xcode's iOS Simulator.
 ---
 
-# SimHammer
+# AppleHammer
 
-SimHammer drives a running iOS app in the Simulator with randomized taps,
+AppleHammer drives a running iOS app in the Simulator with randomized taps,
 swipes, and long-presses, watches for crashes or hangs, and turns each one
 into a concrete bug report — including the exact seed needed to replay the
 crashing sequence.
@@ -56,7 +56,7 @@ XCUITest target (a target whose product type is
 `com.apple.product-type.bundle.ui-testing`).
 
 - **If one exists**: reuse it. Note its name — you'll pass it to
-  `scripts/run.sh -x <target>` if it isn't named `SimHammerTests`.
+  `scripts/run.sh -x <target>` if it isn't named `AppleHammerTests`.
 - **If none exists and the project is Tuist/XcodeGen/`project.yml`-based**:
   add a new UI test target to the project manifest (product type
   `.uiTesting`, depends on the app target) and regenerate the project.
@@ -64,7 +64,7 @@ XCUITest target (a target whose product type is
   Xcode's own "New Target" flow for a UI test bundle isn't something
   `xcodebuild` can do from the command line. Tell the user:
   > "Your project doesn't have a UI test target yet. In Xcode: File → New →
-  > Target… → UI Testing Bundle, name it `SimHammerTests`, attach it to your
+  > Target… → UI Testing Bundle, name it `AppleHammerTests`, attach it to your
   > app's scheme, then re-run this skill."
   Do not attempt to hand-edit `project.pbxproj` to add a target unless the
   project already documents a supported way to regenerate it (as some
@@ -73,9 +73,9 @@ XCUITest target (a target whose product type is
 
 ### 3. Inject MonkeyTests.swift
 
-Copy `Sources/SimHammerTests/MonkeyTests.swift` from this skill into the
+Copy `Sources/AppleHammerTests/MonkeyTests.swift` from this skill into the
 project's UI test target group/folder (e.g. `<Project>UITests/` or
-`SimHammerTests/`), so it's compiled as part of that target. If the target
+`AppleHammerTests/`), so it's compiled as part of that target. If the target
 uses Xcode 16 file-system-synchronized groups, dropping the file into the
 folder on disk is enough — no `project.pbxproj` edit needed. Otherwise add
 it to the target's "Compile Sources" build phase.
@@ -97,7 +97,7 @@ if ProcessInfo.processInfo.arguments.contains("--uitesting") {
 
 If the user has already wired this up under a different flag, pass it via
 `scripts/run.sh -a <flag>` (it's forwarded to the app as
-`SIMHAMMER_LAUNCH_ARG`, defaulting to `--uitesting`).
+`APPLEHAMMER_LAUNCH_ARG`, defaulting to `--uitesting`).
 
 ### 5. Run the monkey
 
@@ -117,7 +117,7 @@ Run:
 scripts/report.sh <output-dir> [seed]
 ```
 
-(`<output-dir>` defaults to `.simhammer/` next to `scripts/`, printed by
+(`<output-dir>` defaults to `.applehammer/` next to `scripts/`, printed by
 `run.sh` at the end of its own output.) This prints:
 
 - Whether a crash/hang was detected, and when.
@@ -146,21 +146,21 @@ iterating.
 
 ## The seed / reproduce workflow
 
-Every run has a seed (`SIMHAMMER_SEED`, a `UInt64`), which entirely
+Every run has a seed (`APPLEHAMMER_SEED`, a `UInt64`), which entirely
 determines the sequence of taps, swipes, and long-presses via a seedable
 SplitMix64 PRNG. This makes crashes reproducible:
 
 - **You don't need to pass a seed to find a crash.** `scripts/run.sh`
   generates one from the current time if you omit `-e`, and always prints it
-  (`SIMHAMMER_SEED=...`) — both in its own output and in the test's stdout,
+  (`APPLEHAMMER_SEED=...`) — both in its own output and in the test's stdout,
   so it's visible even in captured/piped logs.
 - **To reproduce a crash**, re-run with `-e <the seed>` and the same `-t
   <duration>`. The action sequence up to the point of the crash will be
   identical (same taps, same swipes, same long-presses, same order).
-- **The action log** (`.simhammer/action-log-<seed>.jsonl`) is the full,
+- **The action log** (`.applehammer/action-log-<seed>.jsonl`) is the full,
   ordered record of every action taken that run — useful for manually
   walking through what happened even without re-running.
-- **The crash report** (`.simhammer/crash-report-<seed>.json`) is written
+- **The crash report** (`.applehammer/crash-report-<seed>.json`) is written
   only when a crash/hang is detected, and already contains the last 10
   actions plus the detected reason — `scripts/report.sh` is just a
   convenient formatter for it.
@@ -168,9 +168,9 @@ SplitMix64 PRNG. This makes crashes reproducible:
 ## Files in this skill
 
 ```
-SimHammer/
+AppleHammer/
 ├── SKILL.md                                 this file
-├── Sources/SimHammerTests/MonkeyTests.swift  the XCUITest monkey
+├── Sources/AppleHammerTests/MonkeyTests.swift  the XCUITest monkey
 └── scripts/
     ├── run.sh                                boots sim, runs xcodebuild test
     └── report.sh                             summarizes a run's output
@@ -183,11 +183,11 @@ SimHammer/
   doesn't have a canned response for, as a last resort — if that's
   consistently wrong for a particular alert in this app, add that button's
   label near the top of the `commonButtons` list in `MonkeyTests.swift`.
-- **`-only-testing:SimHammerTests/MonkeyTests` fails to find the target**:
-  the UI test target isn't named `SimHammerTests` — pass its real name with
+- **`-only-testing:AppleHammerTests/MonkeyTests` fails to find the target**:
+  the UI test target isn't named `AppleHammerTests` — pass its real name with
   `-x <target>`.
 - **No crash, but the app clearly misbehaved (visual glitch, wrong screen)**:
-  SimHammer only detects hard crashes and hangs (`app.state` leaving
+  AppleHammer only detects hard crashes and hangs (`app.state` leaving
   `.runningForeground`, or XCTest's own hang/crash detection). Visual-only
   regressions need a human (or a screenshot-diff tool) to catch — check the
   action log around the time it happened and reproduce manually with the

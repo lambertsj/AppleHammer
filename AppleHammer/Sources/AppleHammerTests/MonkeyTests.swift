@@ -52,23 +52,23 @@ private struct MonkeyAction {
     let pressDuration: TimeInterval?
 }
 
-/// SimHammer's monkey-testing UI test.
+/// AppleHammer's monkey-testing UI test.
 ///
 /// Taps, swipes, and long-presses random points on screen for a fixed duration,
 /// logging every action so a crash can be traced back to the exact sequence that
 /// caused it. Controlled entirely through environment variables so `scripts/run.sh`
 /// (and `xcodebuild test ... TEST_RUNNER_*`) can drive it without editing this file:
 ///
-///   SIMHAMMER_SEED         UInt64 seed for the PRNG (required for reproducibility;
+///   APPLEHAMMER_SEED         UInt64 seed for the PRNG (required for reproducibility;
 ///                           if unset, a timestamp-derived seed is used and printed)
-///   SIMHAMMER_DURATION      run length in seconds (default: 60)
-///   SIMHAMMER_LOG_DIR       directory to write action-log / crash-report / summary
-///                           JSON files into (default: a SimHammer folder in tmp)
-///   SIMHAMMER_LAUNCH_ARG    extra launch argument passed to the app under test
+///   APPLEHAMMER_DURATION      run length in seconds (default: 60)
+///   APPLEHAMMER_LOG_DIR       directory to write action-log / crash-report / summary
+///                           JSON files into (default: an AppleHammer folder in tmp)
+///   APPLEHAMMER_LAUNCH_ARG    extra launch argument passed to the app under test
 ///                           (default: "--uitesting")
 ///
 /// The host app should check for the `--uitesting` launch argument (or whatever
-/// was passed via SIMHAMMER_LAUNCH_ARG) at startup and skip login/onboarding,
+/// was passed via APPLEHAMMER_LAUNCH_ARG) at startup and skip login/onboarding,
 /// disable analytics/crash-reporter prompts, and load fixture data instead of
 /// hitting real network/auth — see SKILL.md.
 final class MonkeyTests: XCTestCase {
@@ -100,12 +100,12 @@ final class MonkeyTests: XCTestCase {
         continueAfterFailure = true
 
         let env = ProcessInfo.processInfo.environment
-        seed = env["SIMHAMMER_SEED"].flatMap(UInt64.init) ?? UInt64(Date().timeIntervalSince1970 * 1000)
-        duration = env["SIMHAMMER_DURATION"].flatMap(Double.init).flatMap { $0 > 0 ? $0 : nil } ?? 60
-        let launchArg = env["SIMHAMMER_LAUNCH_ARG"].flatMap { $0.isEmpty ? nil : $0 } ?? "--uitesting"
+        seed = env["APPLEHAMMER_SEED"].flatMap(UInt64.init) ?? UInt64(Date().timeIntervalSince1970 * 1000)
+        duration = env["APPLEHAMMER_DURATION"].flatMap(Double.init).flatMap { $0 > 0 ? $0 : nil } ?? 60
+        let launchArg = env["APPLEHAMMER_LAUNCH_ARG"].flatMap { $0.isEmpty ? nil : $0 } ?? "--uitesting"
 
-        logDir = env["SIMHAMMER_LOG_DIR"].flatMap { $0.isEmpty ? nil : URL(fileURLWithPath: $0, isDirectory: true) }
-            ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("SimHammer", isDirectory: true)
+        logDir = env["APPLEHAMMER_LOG_DIR"].flatMap { $0.isEmpty ? nil : URL(fileURLWithPath: $0, isDirectory: true) }
+            ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("AppleHammer", isDirectory: true)
         try FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true)
 
         rng = SplitMix64(seed: seed)
@@ -122,7 +122,7 @@ final class MonkeyTests: XCTestCase {
         // Auto-dismiss system alerts (location/notifications/camera permission
         // prompts, "Would You Like to Rate This App", etc.) so the monkey doesn't
         // stall waiting on a dialog it doesn't know how to answer.
-        interruptionMonitor = addUIInterruptionMonitor(withDescription: "SimHammer system alert handler") { alert in
+        interruptionMonitor = addUIInterruptionMonitor(withDescription: "AppleHammer system alert handler") { alert in
             let commonButtons = ["Allow", "Allow While Using App", "Allow Once", "OK", "Continue", "Don't Allow", "Not Now", "Cancel"]
             for label in commonButtons {
                 let button = alert.buttons[label]
@@ -141,9 +141,9 @@ final class MonkeyTests: XCTestCase {
         }
 
         app.launch()
-        print("SIMHAMMER_SEED=\(seed)")
-        print("SIMHAMMER_DURATION=\(duration)")
-        print("SIMHAMMER_LOG_DIR=\(logDir.path)")
+        print("APPLEHAMMER_SEED=\(seed)")
+        print("APPLEHAMMER_DURATION=\(duration)")
+        print("APPLEHAMMER_LOG_DIR=\(logDir.path)")
     }
 
     override func tearDownWithError() throws {
@@ -176,7 +176,7 @@ final class MonkeyTests: XCTestCase {
         while Date() < deadline {
             guard app.state == .runningForeground else {
                 writeCrashReport(reason: "app.state became \(describe(app.state)) (expected .runningForeground)")
-                XCTFail("SimHammer stopped early after \(index) actions: app is no longer in the foreground. seed=\(seed). See \(crashReportURL.path)")
+                XCTFail("AppleHammer stopped early after \(index) actions: app is no longer in the foreground. seed=\(seed). See \(crashReportURL.path)")
                 return
             }
 
@@ -291,7 +291,7 @@ final class MonkeyTests: XCTestCase {
         if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]) {
             try? data.write(to: crashReportURL)
         }
-        print("SIMHAMMER_CRASH_REPORT=\(crashReportURL.path)")
+        print("APPLEHAMMER_CRASH_REPORT=\(crashReportURL.path)")
     }
 
     private func writeSummary(completed: Bool) {
@@ -305,7 +305,7 @@ final class MonkeyTests: XCTestCase {
         if let data = try? JSONSerialization.data(withJSONObject: summary, options: [.prettyPrinted, .sortedKeys]) {
             try? data.write(to: summaryURL)
         }
-        print("SIMHAMMER_SUMMARY=\(summaryURL.path)")
+        print("APPLEHAMMER_SUMMARY=\(summaryURL.path)")
     }
 
     private func describe(_ state: XCUIApplication.State) -> String {
